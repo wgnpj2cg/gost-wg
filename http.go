@@ -13,6 +13,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-log/log"
@@ -87,21 +88,71 @@ func (c *httpConnector) ConnectContext(ctx context.Context, conn net.Conn, netwo
 		log.Log(string(dump))
 	}
 
-	resp, err := http.ReadResponse(bufio.NewReader(conn), req)
-	if err != nil {
-		return nil, err
-	}
+	return newHandshakeDeferConn(conn, req), nil
+}
 
-	if Debug {
-		dump, _ := httputil.DumpResponse(resp, false)
-		log.Log(string(dump))
-	}
+type handshakeDeferConn struct {
+	net.Conn
+	r                *bufio.Reader
+	req              *http.Request
+	handshakeDone    bool
+	handshakeDoneMux sync.Mutex
+}
 
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s", resp.Status)
+func newHandshakeDeferConn(conn net.Conn, req *http.Request) *handshakeDeferConn {
+	return &handshakeDeferConn{
+		Conn:             conn,
+		r:                bufio.NewReader(conn),
+		handshakeDone:    false,
+		handshakeDoneMux: sync.Mutex{},
+		req:              req,
 	}
+}
 
-	return conn, nil
+func (c *handshakeDeferConn) Read(b []byte) (int, error) {
+	c.handshakeDoneMux.Lock()
+	defer c.handshakeDoneMux.Unlock()
+	defer func() {
+
+		log.Log("exit" + time.Now().String())
+	}()
+
+	if !c.handshakeDone {
+		log.Log(time.Now())
+		resp, err := http.ReadResponse(c.r, c.req)
+		if err != nil {
+			return 0, err
+		}
+
+		if Debug {
+			dump, _ := httputil.DumpResponse(resp, false)
+			log.Log(time.Now())
+			log.Log(string(dump))
+		}
+
+		if resp.StatusCode != http.StatusOK {
+			return 0, fmt.Errorf("%s", resp.Status)
+		}
+		c.handshakeDone = true
+		return c.r.Read(b)
+	}
+	return c.r.Read(b)
+}
+
+type httpPrefixedConn struct {
+	net.Conn
+	r *bufio.Reader
+}
+
+func newHttpPrefixedConn(conn net.Conn) *httpPrefixedConn {
+	return &httpPrefixedConn{
+		Conn: conn,
+		r:    bufio.NewReader(conn),
+	}
+}
+
+func (c *httpPrefixedConn) Read(b []byte) (int, error) {
+	return c.r.Read(b)
 }
 
 type httpHandler struct {
@@ -127,14 +178,15 @@ func (h *httpHandler) Init(options ...HandlerOption) {
 func (h *httpHandler) Handle(conn net.Conn) {
 	defer conn.Close()
 
-	req, err := http.ReadRequest(bufio.NewReader(conn))
+	c := newHttpPrefixedConn(conn)
+	req, err := http.ReadRequest(c.r)
 	if err != nil {
 		log.Logf("[http] %s - %s : %s", conn.RemoteAddr(), conn.LocalAddr(), err)
 		return
 	}
 	defer req.Body.Close()
 
-	h.handleRequest(conn, req)
+	h.handleRequest(c, req)
 }
 
 func (h *httpHandler) handleRequest(conn net.Conn, req *http.Request) {
