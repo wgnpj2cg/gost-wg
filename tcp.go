@@ -44,7 +44,15 @@ func TCPListener(addr string) (Listener, error) {
 	if err != nil {
 		return nil, err
 	}
-	ln, err := net.ListenTCP("tcp", laddr)
+
+	network := "tcp"
+	if laddr.IP.Equal(net.IPv4zero) {
+		network = "tcp4"
+	} else if laddr.IP.Equal(net.IPv6zero) {
+		network = "tcp6"
+	}
+
+	ln, err := net.ListenTCP(network, laddr)
 	if err != nil {
 		return nil, err
 	}

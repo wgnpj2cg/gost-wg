@@ -62,7 +62,15 @@ func UDPListener(addr string, cfg *UDPListenConfig) (Listener, error) {
 	if err != nil {
 		return nil, err
 	}
-	ln, err := net.ListenUDP("udp", laddr)
+
+	network := "udp"
+	if laddr.IP.Equal(net.IPv4zero) {
+		network = "udp4"
+	} else if laddr.IP.Equal(net.IPv6zero) {
+		network = "udp6"
+	}
+
+	ln, err := net.ListenUDP(network, laddr)
 	if err != nil {
 		return nil, err
 	}
