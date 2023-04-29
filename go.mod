@@ -4,6 +4,10 @@ go 1.20
 
 replace github.com/templexxx/cpu v0.0.7 => github.com/templexxx/cpu v0.0.10-0.20211111114238-98168dcec14a
 
+replace github.com/octeep/wireproxy => github.com/pufferffish/wireproxy v0.0.0-20230225193025-d898e7a93129
+
+replace golang.zx2c4.com/wireguard => golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b
+
 require (
 	git.torproject.org/pluggable-transports/goptlib.git v1.2.0
 	github.com/LiamHaworth/go-tproxy v0.0.0-20190726054950-ef7efd7f24ed
@@ -17,6 +21,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/klauspost/compress v1.13.6
 	github.com/miekg/dns v1.1.47
+	github.com/octeep/wireproxy v1.0.5
 	github.com/quic-go/quic-go v0.32.0
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5
@@ -26,17 +31,22 @@ require (
 	github.com/xtaci/smux v1.5.16
 	github.com/xtaci/tcpraw v1.2.25
 	gitlab.com/yawning/obfs4.git v0.0.0-20220204003609-77af0cba934d
-	golang.org/x/crypto v0.5.0
+	golang.org/x/crypto v0.6.0
 	golang.org/x/net v0.7.0
+	golang.zx2c4.com/wireguard v0.0.0-20220829161405-d1d08426b27b
 )
 
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1.0.20210721174708-390f27c3be20 // indirect
+	github.com/MakeNowJust/heredoc/v2 v2.0.1 // indirect
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
+	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5 // indirect
 	github.com/coreos/go-iptables v0.6.0 // indirect
 	github.com/dchest/siphash v1.2.2 // indirect
+	github.com/go-ini/ini v1.66.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/golang/mock v1.6.0 // indirect
+	github.com/google/btree v1.0.1 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
 	github.com/google/pprof v0.0.0-20230131232505-5a9e8f65f08f // indirect
 	github.com/klauspost/cpuid/v2 v2.0.9 // indirect
@@ -54,7 +64,10 @@ require (
 	gitlab.com/yawning/edwards25519-extra.git v0.0.0-20211229043746-2f91fcc9fbdb // indirect
 	golang.org/x/exp v0.0.0-20230203172020-98cc5a0785f9 // indirect
 	golang.org/x/mod v0.7.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.5.1-0.20230222185716-a3b23cc77e89 // indirect
 	golang.org/x/text v0.7.0 // indirect
+	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/tools v0.5.0 // indirect
+	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
+	gvisor.dev/gvisor v0.0.0-20221203005347-703fd9b7fbc0 // indirect
 )

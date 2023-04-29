@@ -90,6 +90,7 @@ func ParseNode(s string) (node Node, err error) {
 	case "ftcp": // fake TCP
 	case "dns":
 	case "redu", "redirectu": // UDP tproxy
+	case "wg":
 	default:
 		node.Transport = "tcp"
 	}
@@ -112,6 +113,7 @@ func ParseNode(s string) (node Node, err error) {
 	case "ftcp": // fake TCP
 	case "dns", "dot", "doh":
 	case "relay":
+	case "wg":
 	default:
 		node.Protocol = ""
 	}

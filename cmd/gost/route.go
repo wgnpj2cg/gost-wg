@@ -241,6 +241,8 @@ func parseChainNode(ns string) (nodes []gost.Node, err error) {
 		tr = gost.FakeTCPTransporter()
 	case "udp":
 		tr = gost.UDPTransporter()
+	case "wg":
+		tr = gost.WireguardTransporter()
 	default:
 		tr = gost.TCPTransporter()
 	}
@@ -271,6 +273,8 @@ func parseChainNode(ns string) (nodes []gost.Node, err error) {
 		connector = gost.HTTPConnector(node.User)
 	case "relay":
 		connector = gost.RelayConnector(node.User)
+	case "wg":
+		connector = gost.WireguardConnector(node.Get("conf"))
 	default:
 		connector = gost.AutoConnector(node.User)
 	}
