@@ -211,6 +211,10 @@ func parseChainNode(ns string) (nodes []gost.Node, err error) {
 			KeepAlive:   node.GetBool("keepalive"),
 			Timeout:     timeout,
 			IdleTimeout: node.GetDuration("idle"),
+
+			SendBps:           uint64(node.GetInt("send_mbps") * gost.MbpsToBps),
+			ReceiveWindowConn: uint64(node.GetInt("recv_window_conn")),
+			ReceiveWindow:     uint64(node.GetInt("recv_window")),
 		}
 		if config.KeepAlive {
 			config.KeepAlivePeriod = node.GetDuration("ttl")
@@ -467,6 +471,11 @@ func (r *route) GenRouters() ([]router, error) {
 				KeepAlive:   node.GetBool("keepalive"),
 				Timeout:     timeout,
 				IdleTimeout: node.GetDuration("idle"),
+
+				SendBps:           uint64(node.GetInt("send_mbps") * gost.MbpsToBps),
+				ReceiveWindowConn: uint64(node.GetInt("recv_window_conn")),
+				ReceiveWindow:     uint64(node.GetInt("recv_window")),
+				MaxConnClient:     int64(node.GetInt("max_conn_client")),
 			}
 			if config.KeepAlive {
 				config.KeepAlivePeriod = node.GetDuration("ttl")

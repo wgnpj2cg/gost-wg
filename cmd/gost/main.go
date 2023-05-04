@@ -31,6 +31,7 @@ func init() {
 
 	flag.Var(&baseCfg.route.ChainNodes, "F", "forward address, can make a forward chain")
 	flag.Var(&baseCfg.route.ServeNodes, "L", "listen address, can listen on multiple ports (required)")
+	flag.IntVar(&baseCfg.route.Retries, "R", 0, "retry times after handler error")
 	flag.IntVar(&baseCfg.route.Mark, "M", 0, "Specify out connection mark")
 	flag.StringVar(&configureFile, "C", "", "configure file")
 	flag.StringVar(&baseCfg.route.Interface, "I", "", "Interface to bind")

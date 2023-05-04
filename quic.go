@@ -12,6 +12,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/apernet/hysteria/core/congestion"
 	"github.com/go-log/log"
 	quic "github.com/quic-go/quic-go"
 )
@@ -21,7 +22,7 @@ type quicSession struct {
 }
 
 func (session *quicSession) GetConn() (*quicConn, error) {
-	stream, err := session.session.OpenStreamSync(context.Background())
+	stream, err := session.session.OpenStream()
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +48,17 @@ func QUICTransporter(config *QUICConfig) Transporter {
 	if config == nil {
 		config = &QUICConfig{}
 	}
+
+	if config.SendBps == 0 {
+		config.SendBps = DefaultClientSendBps
+	}
+	if config.ReceiveWindowConn == 0 {
+		config.ReceiveWindowConn = DefaultReceiveWindowConn
+	}
+	if config.ReceiveWindow == 0 {
+		config.ReceiveWindow = DefaultReceiveWindow
+	}
+
 	return &quicTransporter{
 		config:   config,
 		sessions: make(map[string]*quicSession),
@@ -68,6 +80,15 @@ func (tr *quicTransporter) Dial(addr string, options ...DialOption) (conn net.Co
 	defer tr.sessionMutex.Unlock()
 
 	session, ok := tr.sessions[addr]
+	if ok {
+		conn, err = session.GetConn()
+		if err != nil {
+			session.Close()
+			delete(tr.sessions, addr)
+			ok = false
+		}
+	}
+
 	if !ok {
 		var pc net.PacketConn
 		pc, err = net.ListenUDP("udp", &net.UDPAddr{IP: net.IPv4zero, Port: 0})
@@ -84,14 +105,15 @@ func (tr *quicTransporter) Dial(addr string, options ...DialOption) (conn net.Co
 			pc.Close()
 			return nil, err
 		}
-		tr.sessions[addr] = session
-	}
 
-	conn, err = session.GetConn()
-	if err != nil {
-		session.Close()
-		delete(tr.sessions, addr)
-		return nil, err
+		conn, err = session.GetConn()
+		if err != nil {
+			session.Close()
+			pc.Close()
+			return nil, err
+		}
+
+		tr.sessions[addr] = session
 	}
 	return conn, nil
 }
@@ -117,12 +139,18 @@ func (tr *quicTransporter) initSession(addr net.Addr, conn net.PacketConn) (*qui
 			quic.Version1,
 			quic.VersionDraft29,
 		},
+
+		InitialStreamReceiveWindow:     config.ReceiveWindowConn,
+		MaxStreamReceiveWindow:         config.ReceiveWindowConn,
+		InitialConnectionReceiveWindow: config.ReceiveWindow,
+		MaxConnectionReceiveWindow:     config.ReceiveWindow,
 	}
 	session, err := quic.DialEarly(conn, addr, addr.String(), tlsConfigQUICALPN(config.TLSConfig), quicConfig)
 	if err != nil {
 		log.Logf("quic dial %s: %v", addr, err)
 		return nil, err
 	}
+	session.SetCongestionControl(congestion.NewBrutalSender(config.SendBps))
 	return &quicSession{session: session}, nil
 }
 
@@ -138,7 +166,21 @@ type QUICConfig struct {
 	KeepAlivePeriod time.Duration
 	IdleTimeout     time.Duration
 	Key             []byte
+
+	SendBps           uint64
+	ReceiveWindowConn uint64
+	ReceiveWindow     uint64
+	MaxConnClient     int64
 }
+
+const (
+	MbpsToBps                = 1024 * 1024 / 8  // Mbit/Byte
+	DefaultServerSendBps     = 100 * MbpsToBps  // 100Mbps
+	DefaultClientSendBps     = 20 * MbpsToBps   // 20Mbps
+	DefaultReceiveWindowConn = 16 * 1024 * 1024 // 16MB
+	DefaultReceiveWindow     = 40 * 1024 * 1024 // 40MB
+	DefaultMaxConnClient     = 1024
+)
 
 type quicListener struct {
 	ln       quic.EarlyListener
@@ -151,6 +193,20 @@ func QUICListener(addr string, config *QUICConfig) (Listener, error) {
 	if config == nil {
 		config = &QUICConfig{}
 	}
+
+	if config.SendBps == 0 {
+		config.SendBps = DefaultServerSendBps
+	}
+	if config.ReceiveWindowConn == 0 {
+		config.ReceiveWindowConn = DefaultReceiveWindowConn
+	}
+	if config.ReceiveWindow == 0 {
+		config.ReceiveWindow = DefaultReceiveWindow
+	}
+	if config.MaxConnClient == 0 {
+		config.MaxConnClient = DefaultMaxConnClient
+	}
+
 	quicConfig := &quic.Config{
 		HandshakeIdleTimeout: config.Timeout,
 		KeepAlivePeriod:      config.KeepAlivePeriod,
@@ -159,6 +215,12 @@ func QUICListener(addr string, config *QUICConfig) (Listener, error) {
 			quic.Version1,
 			quic.VersionDraft29,
 		},
+
+		InitialStreamReceiveWindow:     config.ReceiveWindowConn,
+		MaxStreamReceiveWindow:         config.ReceiveWindowConn,
+		InitialConnectionReceiveWindow: config.ReceiveWindow,
+		MaxConnectionReceiveWindow:     config.ReceiveWindow,
+		MaxIncomingStreams:             config.MaxConnClient,
 	}
 
 	tlsConfig := config.TLSConfig
@@ -190,12 +252,12 @@ func QUICListener(addr string, config *QUICConfig) (Listener, error) {
 		connChan: make(chan net.Conn, 1024),
 		errChan:  make(chan error, 1),
 	}
-	go l.listenLoop()
+	go l.listenLoop(config.SendBps)
 
 	return l, nil
 }
 
-func (l *quicListener) listenLoop() {
+func (l *quicListener) listenLoop(bps uint64) {
 	for {
 		session, err := l.ln.Accept(context.Background())
 		if err != nil {
@@ -204,6 +266,7 @@ func (l *quicListener) listenLoop() {
 			close(l.errChan)
 			return
 		}
+		session.SetCongestionControl(congestion.NewBrutalSender(bps))
 		go l.sessionLoop(session)
 	}
 }
@@ -262,6 +325,11 @@ func (c *quicConn) LocalAddr() net.Addr {
 
 func (c *quicConn) RemoteAddr() net.Addr {
 	return c.raddr
+}
+
+func (c *quicConn) Close() error {
+	c.Stream.CancelRead(0)
+	return c.Stream.Close()
 }
 
 type quicCipherConn struct {

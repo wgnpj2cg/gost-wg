@@ -8,9 +8,12 @@ replace github.com/octeep/wireproxy => github.com/pufferffish/wireproxy v0.0.0-2
 
 replace golang.zx2c4.com/wireguard => golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b
 
+replace github.com/quic-go/quic-go => github.com/apernet/quic-go v0.32.1-0.20230226201325-e07aae1a800b
+
 require (
 	git.torproject.org/pluggable-transports/goptlib.git v1.2.0
 	github.com/LiamHaworth/go-tproxy v0.0.0-20190726054950-ef7efd7f24ed
+	github.com/apernet/hysteria/core v1.3.4
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/go-gost/gosocks4 v0.0.1
 	github.com/go-gost/gosocks5 v0.3.0
@@ -22,7 +25,7 @@ require (
 	github.com/klauspost/compress v1.13.6
 	github.com/miekg/dns v1.1.47
 	github.com/octeep/wireproxy v1.0.5
-	github.com/quic-go/quic-go v0.32.0
+	github.com/quic-go/quic-go v0.33.0
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5
 	github.com/shadowsocks/shadowsocks-go v0.0.0-20200409064450-3e585ff90601
@@ -53,9 +56,8 @@ require (
 	github.com/klauspost/reedsolomon v1.9.15 // indirect
 	github.com/onsi/ginkgo/v2 v2.8.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/quic-go/qtls-go1-18 v0.2.0 // indirect
-	github.com/quic-go/qtls-go1-19 v0.2.0 // indirect
-	github.com/quic-go/qtls-go1-20 v0.1.0 // indirect
+	github.com/quic-go/qtls-go1-19 v0.2.1 // indirect
+	github.com/quic-go/qtls-go1-20 v0.1.1 // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/templexxx/cpu v0.0.7 // indirect
 	github.com/templexxx/xorsimd v0.4.1 // indirect
