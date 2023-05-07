@@ -2,30 +2,33 @@ package gost
 
 import (
 	"context"
-	"log"
 	"net"
 
 	"github.com/octeep/wireproxy"
 	"golang.zx2c4.com/wireguard/tun/netstack"
 )
 
-type wireguardConnector struct {
-	Tnet *netstack.Net
+func WireguardTunNet(configFile string) (*netstack.Net, error) {
+	config, err := wireproxy.ParseConfig(configFile)
+	if err != nil {
+		return nil, err
+	}
+
+	tnet, err := wireproxy.StartWireguard(config.Device)
+	if err != nil {
+		return nil, err
+	}
+
+	return tnet.Tnet, nil
 }
 
-func WireguardConnector(conf_path string) Connector {
-	conf, err := wireproxy.ParseConfig(conf_path)
-	if err != nil {
-		log.Fatal(err)
-	}
+type wireguardConnector struct {
+	tnet *netstack.Net
+}
 
-	tnet, err := wireproxy.StartWireguard(conf.Device)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func WireguardConnector(tnet *netstack.Net) Connector {
 	return &wireguardConnector{
-		Tnet: tnet.Tnet,
+		tnet: tnet,
 	}
 }
 
@@ -34,7 +37,7 @@ func (c *wireguardConnector) Connect(conn net.Conn, address string, options ...C
 }
 
 func (c *wireguardConnector) ConnectContext(ctx context.Context, conn net.Conn, network, address string, options ...ConnectOption) (net.Conn, error) {
-	return c.Tnet.DialContext(ctx, network, address)
+	return c.tnet.DialContext(ctx, network, address)
 }
 
 type wireguardTransporter struct {
@@ -45,7 +48,7 @@ func WireguardTransporter() Transporter {
 }
 
 func (tr *wireguardTransporter) Dial(addr string, options ...DialOption) (conn net.Conn, err error) {
-	return &fakeTCPConn{}, nil
+	return nopClientConn, nil
 }
 
 func (tr *wireguardTransporter) Handshake(conn net.Conn, options ...HandshakeOption) (net.Conn, error) {
@@ -54,8 +57,4 @@ func (tr *wireguardTransporter) Handshake(conn net.Conn, options ...HandshakeOpt
 
 func (tr *wireguardTransporter) Multiplex() bool {
 	return true
-}
-
-func (c *fakeTCPConn) Close() error {
-	return nil
 }

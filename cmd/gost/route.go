@@ -278,7 +278,11 @@ func parseChainNode(ns string) (nodes []gost.Node, err error) {
 	case "relay":
 		connector = gost.RelayConnector(node.User)
 	case "wg":
-		connector = gost.WireguardConnector(node.Get("conf"))
+		tnet, err := gost.WireguardTunNet(node.Get("c"))
+		if err != nil {
+			return nil, err
+		}
+		connector = gost.WireguardConnector(tnet)
 	default:
 		connector = gost.AutoConnector(node.User)
 	}
