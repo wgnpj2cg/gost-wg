@@ -4,7 +4,7 @@ go 1.20
 
 replace github.com/templexxx/cpu v0.0.7 => github.com/templexxx/cpu v0.0.10-0.20211111114238-98168dcec14a
 
-replace github.com/octeep/wireproxy => github.com/pufferffish/wireproxy v0.0.0-20230225193025-d898e7a93129
+replace github.com/octeep/wireproxy => ./wireproxy
 
 replace golang.zx2c4.com/wireguard => golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b
 
@@ -36,7 +36,6 @@ require (
 	gitlab.com/yawning/obfs4.git v0.0.0-20220204003609-77af0cba934d
 	golang.org/x/crypto v0.6.0
 	golang.org/x/net v0.7.0
-	golang.zx2c4.com/wireguard v0.0.0-20220829161405-d1d08426b27b
 )
 
 require (
@@ -71,5 +70,6 @@ require (
 	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
 	golang.org/x/tools v0.5.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
+	golang.zx2c4.com/wireguard v0.0.0-20220829161405-d1d08426b27b // indirect
 	gvisor.dev/gvisor v0.0.0-20221203005347-703fd9b7fbc0 // indirect
 )

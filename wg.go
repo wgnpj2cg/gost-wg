@@ -5,31 +5,29 @@ import (
 	"net"
 
 	"github.com/octeep/wireproxy"
-	"golang.zx2c4.com/wireguard/tun/netstack"
 )
 
-func WireguardTunNet(configFile string) (*netstack.Net, error) {
+type wireguardDial func(ctx context.Context, network, address string) (net.Conn, error)
+
+func WireguardDial(configFile string) (wireguardDial, error) {
 	config, err := wireproxy.ParseConfig(configFile)
 	if err != nil {
 		return nil, err
 	}
 
-	tnet, err := wireproxy.StartWireguard(config.Device)
+	vt, err := wireproxy.StartWireguard(config.Device)
 	if err != nil {
 		return nil, err
 	}
 
-	return tnet.Tnet, nil
+	return vt.Tnet.DialContext, nil
 }
 
 type wireguardConnector struct {
-	tnet *netstack.Net
 }
 
-func WireguardConnector(tnet *netstack.Net) Connector {
-	return &wireguardConnector{
-		tnet: tnet,
-	}
+func WireguardConnector() Connector {
+	return &wireguardConnector{}
 }
 
 func (c *wireguardConnector) Connect(conn net.Conn, address string, options ...ConnectOption) (net.Conn, error) {
@@ -37,18 +35,21 @@ func (c *wireguardConnector) Connect(conn net.Conn, address string, options ...C
 }
 
 func (c *wireguardConnector) ConnectContext(ctx context.Context, conn net.Conn, network, address string, options ...ConnectOption) (net.Conn, error) {
-	return c.tnet.DialContext(ctx, network, address)
+	return conn.(*wireguardConn).Dial(ctx, network, address)
 }
 
 type wireguardTransporter struct {
+	conn *wireguardConn
 }
 
-func WireguardTransporter() Transporter {
-	return &wireguardTransporter{}
+func WireguardTransporter(dial wireguardDial) Transporter {
+	return &wireguardTransporter{
+		conn: &wireguardConn{Dial: dial},
+	}
 }
 
 func (tr *wireguardTransporter) Dial(addr string, options ...DialOption) (conn net.Conn, err error) {
-	return nopClientConn, nil
+	return tr.conn, nil
 }
 
 func (tr *wireguardTransporter) Handshake(conn net.Conn, options ...HandshakeOption) (net.Conn, error) {
@@ -57,4 +58,9 @@ func (tr *wireguardTransporter) Handshake(conn net.Conn, options ...HandshakeOpt
 
 func (tr *wireguardTransporter) Multiplex() bool {
 	return true
+}
+
+type wireguardConn struct {
+	nopConn
+	Dial wireguardDial
 }

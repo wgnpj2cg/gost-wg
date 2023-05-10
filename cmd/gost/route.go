@@ -246,7 +246,11 @@ func parseChainNode(ns string) (nodes []gost.Node, err error) {
 	case "udp":
 		tr = gost.UDPTransporter()
 	case "wg":
-		tr = gost.WireguardTransporter()
+		dial, err := gost.WireguardDial(node.Get("c"))
+		if err != nil {
+			return nil, err
+		}
+		tr = gost.WireguardTransporter(dial)
 	default:
 		tr = gost.TCPTransporter()
 	}
@@ -278,11 +282,7 @@ func parseChainNode(ns string) (nodes []gost.Node, err error) {
 	case "relay":
 		connector = gost.RelayConnector(node.User)
 	case "wg":
-		tnet, err := gost.WireguardTunNet(node.Get("c"))
-		if err != nil {
-			return nil, err
-		}
-		connector = gost.WireguardConnector(tnet)
+		connector = gost.WireguardConnector()
 	default:
 		connector = gost.AutoConnector(node.User)
 	}

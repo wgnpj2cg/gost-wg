@@ -1,0 +1,3 @@
+[submodule "wireproxy"]
+	path = wireproxy
+	url = https://github.com/pufferffish/wireproxy.git
