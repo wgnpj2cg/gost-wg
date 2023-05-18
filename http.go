@@ -13,7 +13,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/go-log/log"
@@ -93,32 +92,22 @@ func (c *httpConnector) ConnectContext(ctx context.Context, conn net.Conn, netwo
 
 type handshakeDeferConn struct {
 	net.Conn
-	r                *bufio.Reader
-	req              *http.Request
-	handshakeDone    bool
-	handshakeDoneMux sync.Mutex
+	r             *bufio.Reader
+	req           *http.Request
+	handshakeDone bool
 }
 
 func newHandshakeDeferConn(conn net.Conn, req *http.Request) *handshakeDeferConn {
 	return &handshakeDeferConn{
-		Conn:             conn,
-		r:                bufio.NewReader(conn),
-		handshakeDone:    false,
-		handshakeDoneMux: sync.Mutex{},
-		req:              req,
+		Conn:          conn,
+		r:             bufio.NewReader(conn),
+		req:           req,
+		handshakeDone: false,
 	}
 }
 
 func (c *handshakeDeferConn) Read(b []byte) (int, error) {
-	c.handshakeDoneMux.Lock()
-	defer c.handshakeDoneMux.Unlock()
-	defer func() {
-
-		log.Log("exit" + time.Now().String())
-	}()
-
 	if !c.handshakeDone {
-		log.Log(time.Now())
 		resp, err := http.ReadResponse(c.r, c.req)
 		if err != nil {
 			return 0, err
@@ -126,16 +115,16 @@ func (c *handshakeDeferConn) Read(b []byte) (int, error) {
 
 		if Debug {
 			dump, _ := httputil.DumpResponse(resp, false)
-			log.Log(time.Now())
 			log.Log(string(dump))
 		}
 
 		if resp.StatusCode != http.StatusOK {
 			return 0, fmt.Errorf("%s", resp.Status)
 		}
+
 		c.handshakeDone = true
-		return c.r.Read(b)
 	}
+
 	return c.r.Read(b)
 }
 
