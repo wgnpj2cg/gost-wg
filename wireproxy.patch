@@ -1,5 +1,5 @@
 diff --git a/wireproxy/wireguard.go b/wireproxy/wireguard.go
-index 661504b..0165d96 100644
+index 7d31085..35ea0d1 100644
 --- a/wireproxy/wireguard.go
 +++ b/wireproxy/wireguard.go
 @@ -3,6 +3,7 @@ package wireproxy
@@ -10,15 +10,21 @@ index 661504b..0165d96 100644
  
  	"net/netip"
  
-@@ -63,7 +64,10 @@ func StartWireguard(conf *DeviceConfig) (*VirtualTun, error) {
+@@ -63,7 +64,16 @@ func StartWireguard(conf *DeviceConfig, logLevel int) (*VirtualTun, error) {
  	if err != nil {
  		return nil, err
  	}
--	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelVerbose, ""))
-+	dev := device.NewDevice(tun, conn.NewDefaultBind(), &device.Logger{
-+		Verbosef: func(f string, v ...any) { log.Output(2, "[wg] [D] "+fmt.Sprintf(f, v...)) },
-+		Errorf:   func(f string, v ...any) { log.Output(2, "[wg] [E] "+fmt.Sprintf(f, v...)) },
-+	})
+-	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(logLevel, ""))
++
++	logger := &device.Logger{Verbosef: device.DiscardLogf, Errorf: device.DiscardLogf}
++	if logLevel >= device.LogLevelVerbose {
++		logger.Verbosef = func(f string, v ...any) { log.Output(2, "[wg] [D] "+fmt.Sprintf(f, v...)) }
++	}
++	if logLevel >= device.LogLevelError {
++		logger.Errorf = func(f string, v ...any) { log.Output(2, "[wg] [E] "+fmt.Sprintf(f, v...)) }
++	}
++
++	dev := device.NewDevice(tun, conn.NewDefaultBind(), logger)
  	err = dev.IpcSet(setting.ipcRequest)
  	if err != nil {
  		return nil, err

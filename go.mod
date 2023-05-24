@@ -24,7 +24,7 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/klauspost/compress v1.13.6
 	github.com/miekg/dns v1.1.47
-	github.com/octeep/wireproxy v1.0.5
+	github.com/octeep/wireproxy v1.0.6
 	github.com/quic-go/quic-go v0.33.0
 	github.com/ryanuber/go-glob v1.0.0
 	github.com/shadowsocks/go-shadowsocks2 v0.1.5

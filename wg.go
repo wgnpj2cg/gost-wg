@@ -15,7 +15,12 @@ func WireguardDial(configFile string) (wireguardDial, error) {
 		return nil, err
 	}
 
-	vt, err := wireproxy.StartWireguard(config.Device)
+	logLevel := 1
+	if Debug {
+		logLevel = 2
+	}
+
+	vt, err := wireproxy.StartWireguard(config.Device, logLevel)
 	if err != nil {
 		return nil, err
 	}
