@@ -44,6 +44,7 @@ type HandlerOptions struct {
 	IPRoutes      []IPRoute
 	ProxyAgent    string
 	HTTPTunnel    bool
+	MITM          *MITM
 }
 
 // HandlerOption allows a common way to set handler options.
@@ -224,6 +225,12 @@ func ProxyAgentHandlerOption(agent string) HandlerOption {
 func HTTPTunnelHandlerOption(tunnelMode bool) HandlerOption {
 	return func(opts *HandlerOptions) {
 		opts.HTTPTunnel = tunnelMode
+	}
+}
+
+func MITMHandlerOption(mitm *MITM) HandlerOption {
+	return func(opts *HandlerOptions) {
+		opts.MITM = mitm
 	}
 }
 

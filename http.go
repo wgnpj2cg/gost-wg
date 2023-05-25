@@ -191,7 +191,8 @@ func (h *httpHandler) handleRequest(conn net.Conn, req *http.Request) {
 	}
 
 	host := req.Host
-	if _, port, _ := net.SplitHostPort(host); port == "" {
+	hostname, port, _ := net.SplitHostPort(host)
+	if port == "" {
 		host = net.JoinHostPort(host, "80")
 	}
 
@@ -344,6 +345,15 @@ func (h *httpHandler) handleRequest(conn net.Conn, req *http.Request) {
 		req.Header.Del("Proxy-Connection")
 
 		if err = req.Write(cc); err != nil {
+			log.Logf("[http] %s -> %s : %s", conn.RemoteAddr(), conn.LocalAddr(), err)
+			return
+		}
+	}
+
+	if h.options.MITM != nil && port == "443" && net.ParseIP(hostname) == nil {
+		if mconn, mcc, err := h.options.MITM.Handshake(conn, cc, hostname); err == nil {
+			conn, cc = mconn, mcc
+		} else {
 			log.Logf("[http] %s -> %s : %s", conn.RemoteAddr(), conn.LocalAddr(), err)
 			return
 		}

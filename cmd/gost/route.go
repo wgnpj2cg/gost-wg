@@ -14,6 +14,7 @@ import (
 
 	"github.com/ginuerzh/gost"
 	"github.com/go-log/log"
+	"github.com/lqqyt2423/go-mitmproxy/cert"
 )
 
 type stringList []string
@@ -659,6 +660,22 @@ func (r *route) GenRouters() ([]router, error) {
 			)
 		}
 
+		var mitm *gost.MITM
+		if md, me := node.GetBool("mitm_decrypt"), node.GetBool("mitm_encrypt"); md || me {
+			mitm = &gost.MITM{Decrypt: md, Encrypt: me}
+
+			if md {
+				ca, err := cert.NewCA(node.Get("mitm_caroot"))
+				if err != nil {
+					return nil, err
+				}
+
+				mitm.GetCertificate = func(clientHello *tls.ClientHelloInfo) (*tls.Certificate, error) {
+					return ca.GetCert(clientHello.ServerName)
+				}
+			}
+		}
+
 		handler.Init(
 			gost.AddrHandlerOption(ln.Addr().String()),
 			gost.ChainHandlerOption(chain),
@@ -683,6 +700,7 @@ func (r *route) GenRouters() ([]router, error) {
 			gost.IPRoutesHandlerOption(tunRoutes...),
 			gost.ProxyAgentHandlerOption(node.Get("proxyAgent")),
 			gost.HTTPTunnelHandlerOption(node.GetBool("httpTunnel")),
+			gost.MITMHandlerOption(mitm),
 		)
 
 		rt := router{

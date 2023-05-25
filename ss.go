@@ -198,6 +198,15 @@ func (h *shadowHandler) Handle(conn net.Conn) {
 	}
 	defer cc.Close()
 
+	if h.options.MITM != nil && addr.Port == 443 && net.ParseIP(addr.Host) == nil {
+		if mconn, mcc, err := h.options.MITM.Handshake(conn, cc, addr.Host); err == nil {
+			conn, cc = mconn, mcc
+		} else {
+			log.Logf("[ss] %s -> %s : %s", conn.RemoteAddr(), conn.LocalAddr(), err)
+			return
+		}
+	}
+
 	log.Logf("[ss] %s <-> %s", conn.RemoteAddr(), host)
 	transport(conn, cc)
 	log.Logf("[ss] %s >-< %s", conn.RemoteAddr(), host)

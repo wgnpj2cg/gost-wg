@@ -973,6 +973,16 @@ func (h *socks5Handler) handleConnect(conn net.Conn, req *gosocks5.Request) {
 		log.Logf("[socks5] %s <- %s\n%s",
 			conn.RemoteAddr(), conn.LocalAddr(), rep)
 	}
+
+	if h.options.MITM != nil && req.Addr.Port == 443 && net.ParseIP(req.Addr.Host) == nil {
+		if mconn, mcc, err := h.options.MITM.Handshake(conn, cc, req.Addr.Host); err == nil {
+			conn, cc = mconn, mcc
+		} else {
+			log.Logf("[socks5] %s -> %s : %s", conn.RemoteAddr(), conn.LocalAddr(), err)
+			return
+		}
+	}
+
 	log.Logf("[socks5] %s <-> %s", conn.RemoteAddr(), host)
 	transport(conn, cc)
 	log.Logf("[socks5] %s >-< %s", conn.RemoteAddr(), host)

@@ -21,8 +21,11 @@ require (
 	github.com/go-gost/tls-dissector v0.0.2-0.20220408131628-aac992c27451
 	github.com/go-log/log v0.2.0
 	github.com/gobwas/glob v0.2.3
-	github.com/gorilla/websocket v1.4.2
+	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
+	github.com/gorilla/websocket v1.5.0
 	github.com/klauspost/compress v1.13.6
+	github.com/lqqyt2423/go-mitmproxy v1.6.0
+	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/miekg/dns v1.1.47
 	github.com/octeep/wireproxy v1.0.6
 	github.com/quic-go/quic-go v0.33.0
@@ -58,6 +61,7 @@ require (
 	github.com/quic-go/qtls-go1-19 v0.3.2 // indirect
 	github.com/quic-go/qtls-go1-20 v0.2.2 // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
+	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/templexxx/cpu v0.0.7 // indirect
 	github.com/templexxx/xorsimd v0.4.1 // indirect
 	github.com/tjfoc/gmsm v1.4.1 // indirect
