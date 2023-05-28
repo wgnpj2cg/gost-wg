@@ -1,0 +1,24 @@
+diff --git a/go-mitmproxy/cert/cert.go b/go-mitmproxy/cert/cert.go
+index 4a08303..01a1d78 100644
+--- a/go-mitmproxy/cert/cert.go
++++ b/go-mitmproxy/cert/cert.go
+@@ -300,6 +300,10 @@ func (ca *CA) saveCert() error {
+ }
+ 
+ func (ca *CA) GetCert(commonName string) (*tls.Certificate, error) {
++	if strings.Count(commonName, ".") > 1 {
++		commonName = strings.SplitN(commonName, ".", 2)[1]
++	}
++
+ 	ca.cacheMu.Lock()
+ 	if val, ok := ca.cache.Get(commonName); ok {
+ 		ca.cacheMu.Unlock()
+@@ -344,7 +348,7 @@ func (ca *CA) DummyCert(commonName string) (*tls.Certificate, error) {
+ 	if ip != nil {
+ 		template.IPAddresses = []net.IP{ip}
+ 	} else {
+-		template.DNSNames = []string{commonName}
++		template.DNSNames = []string{commonName, "*." + commonName}
+ 	}
+ 
+ 	certBytes, err := x509.CreateCertificate(rand.Reader, template, &ca.RootCert, &ca.PrivateKey.PublicKey, &ca.PrivateKey)

@@ -2,13 +2,15 @@ module github.com/ginuerzh/gost
 
 go 1.20
 
-replace github.com/templexxx/cpu v0.0.7 => github.com/templexxx/cpu v0.0.10-0.20211111114238-98168dcec14a
+replace github.com/lqqyt2423/go-mitmproxy => ./go-mitmproxy
 
 replace github.com/octeep/wireproxy => ./wireproxy
 
-replace golang.zx2c4.com/wireguard => golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b
-
 replace github.com/quic-go/quic-go => github.com/apernet/quic-go v0.34.1-0.20230507231629-ec008b7e8473
+
+replace github.com/templexxx/cpu v0.0.7 => github.com/templexxx/cpu v0.0.10-0.20211111114238-98168dcec14a
+
+replace golang.zx2c4.com/wireguard => golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b
 
 require (
 	git.torproject.org/pluggable-transports/goptlib.git v1.2.0

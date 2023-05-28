@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/go-log/log"
-	"github.com/golang/groupcache/lru"
-	"github.com/lunixbochs/struc"
 
 	smux "github.com/xtaci/smux"
 )
@@ -327,81 +325,4 @@ func wrapTLSClient(conn net.Conn, tlsConfig *tls.Config, timeout time.Duration) 
 	*/
 
 	return tlsConn, err
-}
-
-type MITM struct {
-	Decrypt, Encrypt bool
-	GetCertificate   func(*tls.ClientHelloInfo) (*tls.Certificate, error)
-}
-
-var mitmHTTP2Cache = lru.New(1024 * 1024)
-
-func (m *MITM) Handshake(conn, cc net.Conn, serverName string) (net.Conn, net.Conn, error) {
-	type Hello struct{ Value bool }
-
-	if m.Encrypt {
-		cc = tls.Client(cc, &tls.Config{
-			ServerName: serverName,
-			NextProtos: []string{"h2", "http/1.1"},
-		})
-
-		if !m.Decrypt {
-			var hello Hello
-			if err := struc.Unpack(conn, &hello); err != nil {
-				return nil, nil, err
-			}
-
-			if !hello.Value {
-				_cc := cc.(*tls.Conn)
-				if err := _cc.Handshake(); err != nil {
-					return nil, nil, err
-				}
-				if err := struc.Pack(conn, &Hello{
-					Value: _cc.ConnectionState().NegotiatedProtocol == "h2",
-				}); err != nil {
-					return nil, nil, err
-				}
-			}
-		}
-	}
-
-	if m.Decrypt {
-		isHTTP2, ok := mitmHTTP2Cache.Get(serverName)
-		if !m.Encrypt {
-			if err := struc.Pack(cc, &Hello{Value: ok}); err != nil {
-				return nil, nil, err
-			}
-		}
-
-		if !ok {
-			if m.Encrypt {
-				_cc := cc.(*tls.Conn)
-				if err := _cc.Handshake(); err != nil {
-					return nil, nil, err
-				}
-				isHTTP2 = _cc.ConnectionState().NegotiatedProtocol == "h2"
-			} else {
-				var hello Hello
-				if err := struc.Unpack(cc, &hello); err != nil {
-					return nil, nil, err
-				}
-				isHTTP2 = hello.Value
-			}
-			mitmHTTP2Cache.Add(serverName, isHTTP2)
-		}
-
-		var nextProtos []string
-		if isHTTP2.(bool) {
-			nextProtos = []string{"h2"}
-		} else {
-			nextProtos = []string{"http/1.1"}
-		}
-
-		conn = tls.Server(conn, &tls.Config{
-			GetCertificate: m.GetCertificate,
-			NextProtos:     nextProtos,
-		})
-	}
-
-	return conn, cc, nil
 }

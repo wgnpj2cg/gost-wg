@@ -1,3 +1,6 @@
+[submodule "go-mitmproxy"]
+	path = go-mitmproxy
+	url = https://github.com/lqqyt2423/go-mitmproxy.git
 [submodule "wireproxy"]
 	path = wireproxy
 	url = https://github.com/pufferffish/wireproxy.git
