@@ -4,13 +4,13 @@ go 1.20
 
 replace github.com/lqqyt2423/go-mitmproxy => ./go-mitmproxy
 
-replace github.com/octeep/wireproxy => ./wireproxy
+replace github.com/octeep/wireproxy => ./extras/wireproxy
 
 replace github.com/quic-go/quic-go => github.com/apernet/quic-go v0.34.1-0.20230507231629-ec008b7e8473
 
 replace github.com/templexxx/cpu v0.0.7 => github.com/templexxx/cpu v0.0.10-0.20211111114238-98168dcec14a
 
-replace golang.zx2c4.com/wireguard => golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b
+replace golang.zx2c4.com/wireguard => github.com/zhsj/wireguard-go v0.0.0-20230810174642-19a9a3630666
 
 require (
 	git.torproject.org/pluggable-transports/goptlib.git v1.2.0
@@ -69,13 +69,13 @@ require (
 	github.com/tjfoc/gmsm v1.4.1 // indirect
 	github.com/xtaci/lossyconn v0.0.0-20200209145036-adba10fffc37 // indirect
 	gitlab.com/yawning/edwards25519-extra.git v0.0.0-20211229043746-2f91fcc9fbdb // indirect
-	golang.org/x/exp v0.0.0-20230203172020-98cc5a0785f9 // indirect
-	golang.org/x/mod v0.7.0 // indirect
+	golang.org/x/exp v0.0.0-20230725093048-515e97ebf090 // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/sys v0.5.1-0.20230222185716-a3b23cc77e89 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	golang.org/x/time v0.0.0-20210220033141-f8bda1e9f3ba // indirect
+	golang.org/x/time v0.0.0-20220210224613-90d013bbcef8 // indirect
 	golang.org/x/tools v0.5.0 // indirect
 	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	golang.zx2c4.com/wireguard v0.0.0-20220829161405-d1d08426b27b // indirect
-	gvisor.dev/gvisor v0.0.0-20221203005347-703fd9b7fbc0 // indirect
+	gvisor.dev/gvisor v0.0.0-20230806223740-1b6e502fedca // indirect
 )

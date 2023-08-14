@@ -1,7 +1,7 @@
-diff --git a/wireproxy/wireguard.go b/wireproxy/wireguard.go
-index 7d31085..35ea0d1 100644
---- a/wireproxy/wireguard.go
-+++ b/wireproxy/wireguard.go
+diff --git a/extras/wireproxy/wireguard.go b/extras/wireproxy/wireguard.go
+index b98bc35..8e219e9 100644
+--- a/extras/wireproxy/wireguard.go
++++ b/extras/wireproxy/wireguard.go
 @@ -3,6 +3,7 @@ package wireproxy
  import (
  	"bytes"
@@ -10,7 +10,7 @@ index 7d31085..35ea0d1 100644
  
  	"net/netip"
  
-@@ -63,7 +64,16 @@ func StartWireguard(conf *DeviceConfig, logLevel int) (*VirtualTun, error) {
+@@ -69,7 +70,16 @@ func StartWireguard(conf *DeviceConfig, logLevel int) (*VirtualTun, error) {
  	if err != nil {
  		return nil, err
  	}
