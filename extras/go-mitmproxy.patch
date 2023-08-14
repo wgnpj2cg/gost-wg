@@ -1,7 +1,7 @@
-diff --git a/go-mitmproxy/cert/cert.go b/go-mitmproxy/cert/cert.go
+diff --git a/extras/go-mitmproxy/cert/cert.go b/extras/go-mitmproxy/cert/cert.go
 index 4a08303..01a1d78 100644
---- a/go-mitmproxy/cert/cert.go
-+++ b/go-mitmproxy/cert/cert.go
+--- a/extras/go-mitmproxy/cert/cert.go
++++ b/extras/go-mitmproxy/cert/cert.go
 @@ -300,6 +300,10 @@ func (ca *CA) saveCert() error {
  }
  

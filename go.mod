@@ -2,7 +2,7 @@ module github.com/ginuerzh/gost
 
 go 1.20
 
-replace github.com/lqqyt2423/go-mitmproxy => ./go-mitmproxy
+replace github.com/lqqyt2423/go-mitmproxy => ./extras/go-mitmproxy
 
 replace github.com/octeep/wireproxy => ./extras/wireproxy
 
@@ -26,7 +26,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 	github.com/gorilla/websocket v1.5.0
 	github.com/klauspost/compress v1.13.6
-	github.com/lqqyt2423/go-mitmproxy v1.6.0
+	github.com/lqqyt2423/go-mitmproxy v1.7.0
 	github.com/lunixbochs/struc v0.0.0-20200707160740-784aaebc1d40
 	github.com/miekg/dns v1.1.47
 	github.com/octeep/wireproxy v1.0.6
