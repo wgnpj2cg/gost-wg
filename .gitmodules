@@ -4,3 +4,6 @@
 [submodule "wireproxy"]
 	path = extras/wireproxy
 	url = https://github.com/pufferffish/wireproxy.git
+[submodule "hysteria"]
+	path = extras/hysteria
+	url = https://github.com/apernet/hysteria.git

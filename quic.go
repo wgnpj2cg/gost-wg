@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/apernet/hysteria/core/congestion"
+	"github.com/apernet/hysteria/core"
+	"github.com/apernet/quic-go"
 	"github.com/go-log/log"
-	quic "github.com/quic-go/quic-go"
 )
 
 type quicSession struct {
@@ -137,7 +137,7 @@ func (tr *quicTransporter) initSession(addr net.Addr, conn net.PacketConn) (*qui
 		KeepAlivePeriod:      config.KeepAlivePeriod,
 		Versions: []quic.VersionNumber{
 			quic.Version1,
-			quic.VersionDraft29,
+			quic.Version2,
 		},
 
 		InitialStreamReceiveWindow:     config.ReceiveWindowConn,
@@ -145,12 +145,12 @@ func (tr *quicTransporter) initSession(addr net.Addr, conn net.PacketConn) (*qui
 		InitialConnectionReceiveWindow: config.ReceiveWindow,
 		MaxConnectionReceiveWindow:     config.ReceiveWindow,
 	}
-	session, err := quic.DialEarly(conn, addr, addr.String(), tlsConfigQUICALPN(config.TLSConfig), quicConfig)
+	session, err := quic.DialEarly(context.Background(), conn, addr, tlsConfigQUICALPN(config.TLSConfig), quicConfig)
 	if err != nil {
 		log.Logf("quic dial %s: %v", addr, err)
 		return nil, err
 	}
-	session.SetCongestionControl(congestion.NewBrutalSender(config.SendBps))
+	congestion.UseBrutal(session, config.SendBps)
 	return &quicSession{session: session}, nil
 }
 
@@ -183,7 +183,7 @@ const (
 )
 
 type quicListener struct {
-	ln       quic.EarlyListener
+	ln       *quic.EarlyListener
 	connChan chan net.Conn
 	errChan  chan error
 }
@@ -213,7 +213,7 @@ func QUICListener(addr string, config *QUICConfig) (Listener, error) {
 		MaxIdleTimeout:       config.IdleTimeout,
 		Versions: []quic.VersionNumber{
 			quic.Version1,
-			quic.VersionDraft29,
+			quic.Version2,
 		},
 
 		InitialStreamReceiveWindow:     config.ReceiveWindowConn,
@@ -266,7 +266,7 @@ func (l *quicListener) listenLoop(bps uint64) {
 			close(l.errChan)
 			return
 		}
-		session.SetCongestionControl(congestion.NewBrutalSender(bps))
+		congestion.UseBrutal(session, bps)
 		go l.sessionLoop(session)
 	}
 }
