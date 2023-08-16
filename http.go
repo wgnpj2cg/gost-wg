@@ -350,7 +350,7 @@ func (h *httpHandler) handleRequest(conn net.Conn, req *http.Request) {
 		}
 	}
 
-	if h.options.MITM != nil && port == "443" && net.ParseIP(hostname) == nil {
+	if h.options.MITM != nil && port == "443" {
 		if mconn, mcc, err := h.options.MITM.Handshake(conn, cc, hostname); err == nil {
 			conn, cc = mconn, mcc
 		} else {

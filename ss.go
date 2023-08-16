@@ -198,7 +198,7 @@ func (h *shadowHandler) Handle(conn net.Conn) {
 	}
 	defer cc.Close()
 
-	if h.options.MITM != nil && addr.Port == 443 && net.ParseIP(addr.Host) == nil {
+	if h.options.MITM != nil && addr.Port == 443 {
 		if mconn, mcc, err := h.options.MITM.Handshake(conn, cc, addr.Host); err == nil {
 			conn, cc = mconn, mcc
 		} else {

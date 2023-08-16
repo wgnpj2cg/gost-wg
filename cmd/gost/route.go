@@ -674,6 +674,8 @@ func (r *route) GenRouters() ([]router, error) {
 					return ca.GetCert(clientHello.ServerName)
 				}
 			}
+
+			mitm.Bypass = parseBypass(node.Get("mitm_bypass"))
 		}
 
 		handler.Init(

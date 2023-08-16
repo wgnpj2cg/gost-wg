@@ -12,10 +12,11 @@ import (
 type MITM struct {
 	Decrypt, Encrypt bool
 	GetCertificate   func(*tls.ClientHelloInfo) (*tls.Certificate, error)
+	Bypass           *Bypass
 }
 
 type mitmHelloRequest struct {
-	NeedProto            bool
+	Bypass, NeedProto    bool
 	SupportH1, SupportH2 bool
 }
 
@@ -28,8 +29,10 @@ type mitmHTTP2CacheKey struct {
 	SupportH1, SupportH2 bool
 }
 
-var mitmHTTP2Cache = lru.New(1024 * 1024)
-var mitmHTTP2CacheMu sync.Mutex
+var (
+	mitmHTTP2Cache   = lru.New(1024 * 1024)
+	mitmHTTP2CacheMu sync.Mutex
+)
 
 func (m *MITM) Handshake(conn, cc net.Conn, serverName string) (net.Conn, net.Conn, error) {
 	if m.Decrypt {
@@ -42,6 +45,16 @@ func (m *MITM) Handshake(conn, cc net.Conn, serverName string) (net.Conn, net.Co
 }
 
 func (m *MITM) decrypt(conn, cc net.Conn, serverName string) (net.Conn, net.Conn, error) {
+	if m.Bypass.Contains(serverName) {
+		if !m.Encrypt {
+			if err := struc.Pack(cc, &mitmHelloRequest{Bypass: true}); err != nil {
+				return nil, nil, err
+			}
+		}
+
+		return conn, cc, nil
+	}
+
 	tconn := tls.Server(conn, &tls.Config{
 		GetConfigForClient: func(chi *tls.ClientHelloInfo) (*tls.Config, error) {
 			key := mitmHTTP2CacheKey{ServerName: serverName}
@@ -106,6 +119,10 @@ func (m *MITM) encrypt(conn, cc net.Conn, serverName string) (net.Conn, net.Conn
 		return nil, nil, err
 	}
 
+	if request.Bypass {
+		return conn, cc, nil
+	}
+
 	tcc := tls.Client(cc, &tls.Config{
 		ServerName: serverName,
 		NextProtos: mitmBool2String(request.SupportH1, request.SupportH2),
@@ -138,11 +155,12 @@ func mitmString2Bool(protos []string) (supportH1, supportH2 bool) {
 }
 
 func mitmBool2String(supportH1, supportH2 bool) (protos []string) {
-	if supportH2 {
-		protos = append(protos, "h2")
-	}
-	if supportH1 {
-		protos = append(protos, "http/1.1")
+	if supportH1 && supportH2 {
+		protos = []string{"h2", "http/1.1"}
+	} else if supportH1 {
+		protos = []string{"http/1.1"}
+	} else if supportH2 {
+		protos = []string{"h2"}
 	}
 	return
 }
